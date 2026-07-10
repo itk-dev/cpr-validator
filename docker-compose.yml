@@ -1,8 +1,7 @@
-version: "3"
-
 services:
   phpfpm:
-    image: itkdev/php7.4-fpm:latest
+    image: itkdev/php${PHP_VERSION:-7.4}-fpm:latest
+    user: ${COMPOSE_USER:-deploy}
     environment:
       - PHP_XDEBUG=${PHP_XDEBUG:-0}
       - PHP_XDEBUG_REMOTE_AUTOSTART=${PHP_XDEBUG_REMOTE_AUTOSTART:-0}
@@ -12,4 +11,4 @@ services:
       - PHP_MEMORY_LIMIT=256M
       - PHP_IDE_CONFIG=serverName=localhost
     volumes:
-      - .:/app:delegated
+      - .:/app

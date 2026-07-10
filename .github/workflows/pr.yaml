@@ -1,130 +1,70 @@
+env:
+    COMPOSE_USER: runner
+
 on: pull_request
 name: Review
 jobs:
   test-composer-install:
     runs-on: ubuntu-latest
-    strategy:
+    strategy: &strategy
       fail-fast: false
       matrix:
-        php: [ '7.4', '8.0' ]
-    name: Validate composer (${{ matrix.php}})
+        php:
+          - '7.4'
+          - '8.2'
+          - '8.3'
+          - '8.4'
+          - '8.5'
+    env: &env
+        PHP_VERSION: ${{ matrix.php }}
+    name: Validate composer (${{ matrix.php }})
     steps:
-      - uses: actions/checkout@master
-
-      - name: Setup PHP, with composer and extensions
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php}}
-          tools: composer:v1
-          coverage: none
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ matrix.php }}-composer-
+      - uses: actions/checkout@v7
 
       - name: Validate composer files
-        run: composer validate composer.json
+        run: docker compose run --rm phpfpm composer validate
 
       - name: Composer install
-        run: composer install
+        run: docker compose run --rm phpfpm composer install
 
   unit_tests:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '7.4', '8.0' ]
-    name: Unit tests (${{ matrix.php}})
+    strategy: *strategy
+    env: *env
+    name: Unit tests (${{ matrix.php }})
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v7
 
-      - name: Setup PHP, with composer and extensions
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php}}
-          tools: composer:v1
-          coverage: none
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ matrix.php }}-composer-
-
-      - name: Install Dependencies
-        run: composer install
+      - name: Composer install
+        run: docker compose run --rm phpfpm composer install
 
       - name: Unit tests
-        run: phpdbg -qrr ./vendor/bin/phpunit --coverage-clover=coverage/unit.xml
+        run: docker compose run --rm phpfpm php vendor/bin/phpunit --coverage-clover=coverage/unit.xml
 
   phpcsfixer:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '7.4', '8.0' ]
+    strategy: *strategy
+    env: *env
     name: Coding style fixer (${{ matrix.php }})
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v7
 
-      - name: Setup PHP, with composer and extensions
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          tools: composer:v1
-          coverage: none
+      - name: Composer install
+        run: docker compose run --rm phpfpm composer install
 
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ matrix.php }}-composer-
-
-      - name: Install Dependencies
-        run: composer install
-
-      - name: phpcsfixerr
-        run: composer run check-coding-standards
+      - name: Unit tests
+        run: docker compose run --rm phpfpm composer check-coding-standards
 
   psalm:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '7.4', '8.0' ]
+    strategy: *strategy
+    env: *env
     name: Static analysis (${{ matrix.php }})
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v7
 
-      - name: Setup PHP, with composer and extensions
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: ${{ matrix.php }}
-          tools: composer:v1
-          coverage: none
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ matrix.php }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ matrix.php }}-composer-
-
-      - name: Install Dependencies
-        run: composer install
+      - name: Composer install
+        run: docker compose run --rm phpfpm composer install
 
       - name: Running analysis
-        run: composer run psalm
+        run: docker compose run --rm phpfpm composer psalm
