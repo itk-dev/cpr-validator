@@ -75,6 +75,12 @@ class CprValidatorTest extends TestCase
 My username is 0101604242.',
                 true,
             ],
+
+            [
+                // https://da.wikipedia.org/wiki/Kim_Larsen#Solokarriere
+                'I 1979 udsendte Kim Larsen solopladen 231045-0637, "personnummerpladen", da Larsen valgte sit eget personnummer til albumtitlen.',
+                true,
+            ],
         ];
     }
 
