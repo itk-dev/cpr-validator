@@ -29,7 +29,7 @@ class CprValidator
         // We assume that CPR numbers use only space and dash for formatting.
         $pattern = '/(?<=^|\D)\d(?:[ -]?\d){9}(?=\D|$)/';
 
-        if (preg_match_all($pattern, $text, $matches)) {
+        if (false !== preg_match_all($pattern, $text, $matches)) {
             foreach ($matches as $match) {
                 foreach ($match as $cpr) {
                     if ($this->isCpr($cpr)) {
@@ -137,10 +137,10 @@ class CprValidator
         // E.g. If the control is 4 and the year is smaller or equal to 36 -> 2000-2036
         // E.g. If the control is 7 and the year is larger than 57 -> 1858-1899
         $ranges = [
-            0 => [99, 1900, null],
-            1 => [99, 1900, null],
-            2 => [99, 1900, null],
-            3 => [99, 1900, null],
+            0 => [99, 1900,    0],
+            1 => [99, 1900,    0],
+            2 => [99, 1900,    0],
+            3 => [99, 1900,    0],
             4 => [36, 2000, 1900],
             5 => [57, 2000, 1800],
             6 => [57, 2000, 1800],
