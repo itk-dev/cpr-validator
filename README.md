@@ -22,11 +22,12 @@ $result = $cprValidator->containsCpr('My id is 0101601234');
 ## Check code style
 
 ```sh
-docker-compose run --rm phpfpm composer run check-coding-standards/php-cs-fixer
+docker compose run --rm phpfpm composer install
+docker compose run --rm phpfpm composer run check-coding-standards/php-cs-fixer
 ```
 
 ## Run unit tests
 
 ```sh
-docker-compose run --rm phpfpm composer run phpunit
+docker compose run --rm phpfpm composer run phpunit
 ```
