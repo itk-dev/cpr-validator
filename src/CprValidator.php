@@ -125,13 +125,33 @@ class CprValidator
      */
     private function hasValidDate(string $cpr): bool
     {
-        $day = substr($cpr, 0, 2);
-        $month = substr($cpr, 2, 2);
-        $year = substr($cpr, 4, 2);
+        $day = (int) substr($cpr, 0, 2);
+        $month = (int) substr($cpr, 2, 2);
+        $year = (int) substr($cpr, 4, 2);
 
-        $prefix = (int) $year < 21 ? '20' : '19';
-        $year = $prefix.$year;
+        // Map from a year (0-99) and control digit (0-9) to a century.
+        // https://cpr.dk/media/12066/personnummeret-i-cpr.pdf
+        // The keys of the dict corespond to the control digit.
+        // The first value of the tuples is the cutoff year. If the input year is equal to or below the first value
+        // the first century is used. If the year is above the first value, the second century is used.
+        // E.g. If the control is 4 and the year is smaller or equal to 36 -> 2000-2036
+        // E.g. If the control is 7 and the year is larger than 57 -> 1858-1899
+        $ranges = [
+            0 => [99, 1900, null],
+            1 => [99, 1900, null],
+            2 => [99, 1900, null],
+            3 => [99, 1900, null],
+            4 => [36, 2000, 1900],
+            5 => [57, 2000, 1800],
+            6 => [57, 2000, 1800],
+            7 => [57, 2000, 1800],
+            8 => [57, 2000, 1800],
+            9 => [36, 2000, 1900],
+        ];
+        $control = (int) substr($cpr, 6, 1);
+        $range = $ranges[$control];
+        $year += $year <= $range[0] ? $range[1] : $range[2];
 
-        return checkdate(intval($month), intval($day), intval($year));
+        return checkdate($month, $day, $year);
     }
 }
